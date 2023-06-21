@@ -1,0 +1,449 @@
+openapi: 3.0.3
+info:
+  title: Shopping Cart API
+  version: 1.0.0
+  description: An API for managing a shopping cart
+servers:
+  - url: http://shoppinglist.tuurwf/api
+paths:
+  /shopping-list:
+    get:
+      summary: Get the contents of the shopping cart
+      tags:
+        - Shoppinglist
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  linkdata: # This is not the real response, but its to make it visually clear there is a difference, the contents of this component are returned.
+                    items:
+                      $ref: '#/components/schemas/LinkData'
+    post:
+      summary: Add a product to the shopping cart
+      tags:
+        - Shoppinglist
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for authorization
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /shopping-list/list:
+    get:
+      summary: Get a list of items from the shopping list
+      tags:
+        - Shoppinglist
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [nl, en]
+          required: true
+          description: The language to return the items in
+        - in: query
+          name: perpage
+          schema:
+            type: integer
+            minimum: 1
+          description: The number of items to return per page
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: The page number to return
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ShoppingListItem'
+                  linkdata:
+                    $ref: '#/components/schemas/LinkData'  
+  /shopping-list/{id}/list:
+    get:
+      summary: Get a list of items from the shopping list
+      tags:
+        - Shoppinglist
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+            enum: [nl, en]
+          required: true
+          description: The language to return the items in
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: The page number to return
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_page:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SingleLangShoppingListItem'
+                  linkdata:
+                    $ref: '#/components/schemas/LinkData'  
+  /shopping-list/{id}:
+    get:
+      summary: Get a specific shopping list item
+      tags:
+        - Shoppinglist
+      parameters:
+        - name: id
+          in: path
+          description: The ID of the shopping list item to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/MultiLangShoppingListItem'
+    put:
+      summary: Update shopping list item
+      tags:
+        - Shoppinglist      
+      parameters:
+        - name: id
+          in: path
+          description: ID of shopping list item to update
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          description: Bearer token for authorization
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Shopping list item updated successfully
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized - missing or invalid access token
+        '404':
+          description: Shopping list item not found
+    delete:
+      summary: Delete shopping list item by id
+      description: Deletes a specific shopping list item by id
+      tags:
+        - Shoppinglist
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: ID of the shopping list item to delete
+          schema:
+            type: integer
+        - in: header
+          name: Authorization
+          required: true
+          description: Bearer token to access the API
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Shopping list item deleted successfully
+        '401':
+          description: Unauthorized access. Invalid or expired token
+        '404':
+          description: Shopping list item not found
+        '500':
+          description: Server error occurred while deleting the shopping list item
+  /login:
+    post:
+      summary: User Login
+      description: Authenticates the user and generates an access token
+      requestBody:
+        required: true
+        content:
+          application/json:      
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authorisation:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      type:
+                        type: string
+                    required:
+                      - token
+                      - type
+              example:
+                authorisation:
+                  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc2hvcHBpbmdsaXN0LnR1dXJ3Zi9hcGkvbG9naW4iLCJpYXQiOjE2ODMyOTQyNzYsImV4cCI6MTY4MzI5Nzg3NiwibmJmIjoxNjgzMjk0Mjc2LCJqdGkiOiJRN2hqemhPd0dtdkQ3aTg2Iiwic3ViIjoiMiIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.qoyc_EtSd9HMx_6Eei0HoiHWOYXRCu3ltzlrB7nLjA8
+                  type: bearer
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal Server Error          
+  /register:
+    post:
+      summary: User Login
+      description: Authenticates the user and generates an access token
+      requestBody:
+        required: true
+        content:
+          application/json:      
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authorisation:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Successfully registered"
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Internal Server Error   
+components:
+  schemas:
+    Translation:
+      type: object
+      properties:
+        product_id:
+          type: integer
+          format: int64
+        lang:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: string
+          format: float
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int64
+        image:
+          type: string
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+    Link:
+      type: object
+      properties:
+        url:
+          type: string
+        label:
+          type: string
+        active:
+          type: boolean
+    LinkData:
+      type: object
+      properties:
+        first_page_url:
+          type: string
+        from:
+          type: integer
+        last_page:
+          type: integer
+        last_page_url:
+          type: string
+        links:
+          type: array
+          items:
+          $ref: '#/components/schemas/Link'
+        next_page_url:
+          type: string
+        path:
+          type: string
+        per_page:
+          type: integer
+        prev_page_url: 
+          type: string
+        to:
+          type: integer
+        total:
+          type: integer
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: object
+          properties:
+            nl:
+              type: string
+            en:
+              type: string
+        description:
+          type: object
+          properties:
+            nl:
+              type: string
+            en:
+              type: string
+        price:
+          type: object
+          properties:
+            nl:
+              type: number
+              format: float
+            en:
+              type: number
+              format: float
+        quantity:
+          type: integer
+        image:
+          type: string
+    ShoppingListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the shopping list item
+        name:
+          type: string
+          description: Name of the item
+        description:
+          type: string
+          description: Description of the item
+        price:
+          type: number
+          description: Price of the item
+        quantity:
+          type: integer
+          description: Quantity of the item
+        image:
+          type: string
+          description: URL of the item image
+      required:
+        - name
+        - price
+        - quantity
+    MultiLangShoppingListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int64
+        image:
+          type: string
+        translations:
+          type: object
+          properties:
+            en:
+              $ref: '#/components/schemas/Translation'
+            nl:
+              $ref: '#/components/schemas/Translation'
+    SingleLangShoppingListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        quantity:
+          type: integer
+          format: int64
+        image:
+          type: string
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'

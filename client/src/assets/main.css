@@ -1,0 +1,70 @@
+@import './base.css';
+
+#app {
+  max-width: 1280px;
+  width: 100%;
+  margin: auto;
+  padding: 2rem;
+
+  font-weight: normal;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  color: #333;
+  background-color: #f2f2f2;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease-in-out;
+}
+
+a:hover {
+  background-color: #f2f2f2;
+}
+
+
+
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+    place-items: center;
+  }
+
+  #app {
+    /* display: grid;
+    grid-template-columns: 1fr 1fr; */
+    padding: 0 2rem;
+  }
+}
+
+.loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  -webkit-animation: spin 2s linear infinite; /* Safari */
+  animation: spin 2s linear infinite;
+}
+
+/* Safari */
+@-webkit-keyframes spin {
+  0% { -webkit-transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
